@@ -1,0 +1,12 @@
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, ".env") });
+console.log("--- Environment Diagnostic ---");
+console.log("GEMINI_API_KEY exists:", !!process.env.GEMINI_API_KEY);
+console.log("VITE_SUPABASE_URL exists:", !!process.env.VITE_SUPABASE_URL);
+console.log("VITE_SUPABASE_ANON_KEY exists:", !!process.env.VITE_SUPABASE_ANON_KEY);
+console.log("APP_URL exists:", !!process.env.APP_URL);
+console.log("PORT exists:", !!process.env.PORT);
+console.log("--- End Diagnostic ---");

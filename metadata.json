@@ -1,0 +1,6 @@
+{
+  "name": "VitrineAdmin - Painel Administrativo",
+  "description": "Painel administrativo profissional para gerenciamento de vitrines digitais, produtos, categorias, clientes e inteligência artificial.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
