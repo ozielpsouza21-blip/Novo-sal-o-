@@ -178,6 +178,77 @@ interface BannerItem {
 }
 
 export default function App() {
+  // Auth state managed via Supabase Auth & perfis table
+  const [session, setSession] = useState<UserSession | null>(null);
+
+  useEffect(() => {
+    // Check active session on mount
+    supabase.auth.getSession().then(async ({ data: { session: authSession } }) => {
+      if (authSession?.user) {
+        let name = authSession.user.user_metadata?.nome || authSession.user.email?.split('@')[0] || 'Usuário';
+        let role = authSession.user.user_metadata?.role || 'cliente';
+
+        try {
+          const { data: profile } = await supabase
+            .from('perfis')
+            .select('*')
+            .eq('id', authSession.user.id)
+            .maybeSingle();
+
+          if (profile) {
+            if (profile.nome) name = profile.nome;
+            if (profile.role) role = profile.role;
+          }
+        } catch (e) {
+          console.warn('Erro ao consultar tabela perfis:', e);
+        }
+
+        setSession({
+          email: authSession.user.email || '',
+          name,
+          role,
+          token: authSession.access_token
+        });
+      }
+    });
+
+    // Listen to Auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, authSession) => {
+      if (authSession?.user) {
+        let name = authSession.user.user_metadata?.nome || authSession.user.email?.split('@')[0] || 'Usuário';
+        let role = authSession.user.user_metadata?.role || 'cliente';
+
+        try {
+          const { data: profile } = await supabase
+            .from('perfis')
+            .select('*')
+            .eq('id', authSession.user.id)
+            .maybeSingle();
+
+          if (profile) {
+            if (profile.nome) name = profile.nome;
+            if (profile.role) role = profile.role;
+          }
+        } catch (e) {
+          console.warn('Erro ao consultar tabela perfis:', e);
+        }
+
+        setSession({
+          email: authSession.user.email || '',
+          name,
+          role,
+          token: authSession.access_token
+        });
+      } else {
+        setSession(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const [availableServices, setAvailableServices] = useState<ServiceOption[]>([]);
 
   useEffect(() => {
@@ -246,8 +317,8 @@ export default function App() {
         serviceId: a.servico_id,
         serviceName: a.servico_nome,
         companyName: a.company_name,
-        date: a.data,
-        time: a.horario.substring(0, 5),
+        date: a.data || '',
+        time: a.horario ? a.horario.substring(0, 5) : '',
         status: a.status,
         notes: a.observacoes,
         createdAt: a.created_at
@@ -498,77 +569,6 @@ export default function App() {
     setIsCartOpen(false);
     setOrderConfirmationModal(newOrder);
   };
-
-  // Auth state managed via Supabase Auth & perfis table
-  const [session, setSession] = useState<UserSession | null>(null);
-
-  useEffect(() => {
-    // Check active session on mount
-    supabase.auth.getSession().then(async ({ data: { session: authSession } }) => {
-      if (authSession?.user) {
-        let name = authSession.user.user_metadata?.nome || authSession.user.email?.split('@')[0] || 'Usuário';
-        let role = authSession.user.user_metadata?.role || 'cliente';
-
-        try {
-          const { data: profile } = await supabase
-            .from('perfis')
-            .select('*')
-            .eq('id', authSession.user.id)
-            .maybeSingle();
-
-          if (profile) {
-            if (profile.nome) name = profile.nome;
-            if (profile.role) role = profile.role;
-          }
-        } catch (e) {
-          console.warn('Erro ao consultar tabela perfis:', e);
-        }
-
-        setSession({
-          email: authSession.user.email || '',
-          name,
-          role,
-          token: authSession.access_token
-        });
-      }
-    });
-
-    // Listen to Auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, authSession) => {
-      if (authSession?.user) {
-        let name = authSession.user.user_metadata?.nome || authSession.user.email?.split('@')[0] || 'Usuário';
-        let role = authSession.user.user_metadata?.role || 'cliente';
-
-        try {
-          const { data: profile } = await supabase
-            .from('perfis')
-            .select('*')
-            .eq('id', authSession.user.id)
-            .maybeSingle();
-
-          if (profile) {
-            if (profile.nome) name = profile.nome;
-            if (profile.role) role = profile.role;
-          }
-        } catch (e) {
-          console.warn('Erro ao consultar tabela perfis:', e);
-        }
-
-        setSession({
-          email: authSession.user.email || '',
-          name,
-          role,
-          token: authSession.access_token
-        });
-      } else {
-        setSession(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   // Login & Register state
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
